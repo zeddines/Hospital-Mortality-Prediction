@@ -8,11 +8,11 @@ from itertools import product
 from sklearn.inspection import DecisionBoundaryDisplay
 import seaborn as sns
 from sklearn import datasets,linear_model
-from sklearn.metrics import mean_squared_error, r2_score, accuracy_score
+from sklearn.metrics import mean_squared_error, r2_score, accuracy_score, confusion_matrix, classification_report
 import statsmodels.api as sm
 from scipy import stats
 from sklearn.feature_selection import SelectKBest, chi2
-from sklearn.ensemble import ExtraTreesClassifier, VotingClassifier, AdaBoostClassifier
+from sklearn.ensemble import ExtraTreesClassifier, VotingClassifier, AdaBoostClassifier, RandomForestClassifier
 from sklearn.model_selection import train_test_split
 
 
@@ -151,7 +151,7 @@ def get_important_cols(df:pd.DataFrame):
 
 
 # predict and report results of classifiers
-def report_results(clf_list, clf_names, X, y):
+def report_results(clf_list, clf_names, X, y, cr=False):
 		"""report results
 
 		Args:
@@ -169,6 +169,11 @@ def report_results(clf_list, clf_names, X, y):
 				mse = round(mean_squared_error(y, pred), 3)
 				acc = round(accuracy_score(y, pred), 3)
 				print(f"{lbl} score:\t{round(score, 2)}\tmse: {mse}\t Accuracy: {acc}")
+				if cr:
+					print(classification_report(y,pred, target_names=['survived','mortality']
+																			, zero_division=1))
+				if lbl == 'VC':
+					print(confusion_matrix(y, pred))
 
 
 # create and fit classifiers and ensembles
@@ -180,27 +185,29 @@ def train_test_data(X, y):
 				y ([list]): target class
 		"""
 		X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
-		clf_dt = DecisionTreeClassifier(max_depth=6)
+		clf_dt = DecisionTreeClassifier(max_depth=4)
 		clf_knn = KNeighborsClassifier(n_neighbors=3)
 		clf_svc = svm.SVC(gamma=0.1, kernel='rbf', probability=True)
+		clf_rf = RandomForestClassifier(n_estimators=400, max_depth=2)
 		eclf = VotingClassifier(
-			estimators=[('dt', clf_dt), ('knn', clf_knn), ('svc', clf_svc)]
-			, voting='soft'
+			estimators=[('dt', clf_dt), ('knn', clf_knn), ('svc', clf_svc), ('rf', clf_rf)]
+			, voting='hard'
 		)
 		clf_dt.fit(X_train, y_train)
 		clf_knn.fit(X_train, y_train)
 		clf_svc.fit(X_train, y_train)
+		clf_rf.fit(X_train, y_train)
 		eclf.fit(X_train, y_train)
 
 		print('\nTraining tests (testing on same data fitted to)')
-		clfs = [clf_dt, clf_knn, clf_svc, eclf]
-		lbls = ['DT', 'KNN', 'SVC', 'VC']
+		clfs = [clf_dt, clf_knn, clf_svc, clf_rf, eclf]
+		lbls = ['DT', 'KNN', 'SVC', 'RF', 'VC']
 		report_results(clfs, lbls, X_train, y_train)
 
 		print('\nTesting Results (with unseen test data)')
-		report_results(clfs, lbls, X_test, y_test)
-
-
+		report_results(clfs, lbls, X_test, y_test, True)
+		# print('SVC support: ', clf_svc.support_)
+		# print('SVC support_vectors length: ', len(clf_svc.support_vectors_))
 
 
 
