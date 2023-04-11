@@ -237,6 +237,7 @@ for i in range(len(df)):
 scaler = MinMaxScaler()
 normalized_data = scaler.fit_transform(df)
 df['howmany'] = how_many
+df['unserious_counter'] = unserious_count
 df['z-score sum'] = df_z.sum(axis=1)
 df['z-score adjusted sum'] = df_z_weighted_by_correlation.sum(axis=1)
 df.to_csv("haha.csv")
