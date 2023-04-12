@@ -119,10 +119,10 @@ def find_p_value(df):
 		fii = mod.fit()
 		p_vals = fii.summary2().tables[1][:]
 		print(p_vals)
-		# for c in X_cols[3:]:
-		# 	print(c)
 
 
+
+# using sklearn's selectKBest, find best columns to use
 def get_best_columns(df:pd.DataFrame):
 		X = df.iloc[:,3:]
 		y = df.iloc[:,2]
@@ -134,6 +134,7 @@ def get_best_columns(df:pd.DataFrame):
 		feature_scores.columns = ['xFeature', 'Score']
 		print('Select KBest Features...')
 		print(feature_scores.nlargest(15, 'Score'))
+
 
 
 def get_important_cols(df:pd.DataFrame):
@@ -205,7 +206,7 @@ def train_test_data(X, y):
 		report_results(clfs, lbls, X_train, y_train)
 
 		print('\nTesting Results (with unseen test data)')
-		report_results(clfs, lbls, X_test, y_test, True)
+		report_results(clfs, lbls, X_test, y_test)
 		# print('SVC support: ', clf_svc.support_)
 		# print('SVC support_vectors length: ', len(clf_svc.support_vectors_))
 
@@ -217,7 +218,7 @@ def main():
 		df.replace('NA', np.nan, inplace=True)
 		columns = df.columns.tolist()
 		# print(df.dtypes)
-		print('df indexes: \n', df.index)		
+		# print('df indexes: \n', df.index)		
 		df.fillna(df.median(), inplace=True)
 		df_alive = df.where(df['outcome'] == 0)
 		df_dead = df.where(df['outcome'] == 1)
