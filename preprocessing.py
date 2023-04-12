@@ -16,22 +16,8 @@ prediction project
 ##############
 # Imports
 ##############
+
 import pandas as pd
-from scipy.stats import skew
-from sklearn.preprocessing import MinMaxScaler, StandardScaler
-from imblearn.over_sampling import RandomOverSampler, SMOTE
-from sklearn.model_selection import train_test_split
-import seaborn as sns
-import matplotlib.pyplot as plt
-import numpy as np
-from sklearn.metrics import accuracy_score,confusion_matrix, \
-  ConfusionMatrixDisplay, f1_score, roc_curve, auc, \
-  precision_recall_curve, average_precision_score
-from xgboost import XGBClassifier
-from sklearn.neural_network import MLPClassifier
-from sklearn.linear_model import LinearRegression
-import statsmodels.api as sm
-from sklearn.ensemble import GradientBoostingClassifier
 
 
 

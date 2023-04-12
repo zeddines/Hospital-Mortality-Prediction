@@ -489,7 +489,11 @@ def model_ready_datasets(df_pp:pd.DataFrame):
         carried out.
     
     Returns:
-        pd.Dataframe with newly added engineered features
+        pandas Dataframe with newly added engineered features
+        X_train (pandas Dataframe): training features
+        X_test (pandas Dataframe): features reserved for testing
+        y_train (pandas Dataframe): target labels for training
+        y_test (pandas Dataframe): true target for testing metrics
     """
     # create the dictionary of healthy ranges
     Good_range = health_dictionary()
@@ -505,7 +509,11 @@ def model_ready_datasets(df_pp:pd.DataFrame):
     df = normalize_continuous_columns(df)
     # Sperate the features and the outcome/target
     y = df[['outcome']]
-    X = df.drop(['outcome'], axis=1)
+    cols_to_drop = ['outcome','gendera', 'NT-proBNP', 'INR'
+                    ,'Chloride_updated', 'Diastolic blood pressure'
+                    ,'hematocrit binned','SP O2 binned'
+                    ,'Magnesium_ion_updated','atrialfibrillation']
+    X = df.drop(cols_to_drop, axis=1)
     # Split data into development (90%) and test (10%) sets
     X_dev, X_test, y_dev, y_test = \
       train_test_split(X, y, test_size=0.1, random_state=42)

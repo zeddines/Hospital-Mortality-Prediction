@@ -48,7 +48,7 @@ def main():
     X, y = adaBoost.load_data()
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2)
-    mi = 1000000
+    mi = 3000
     learn_rates = [0.0001, 0.00015, 0.0002]
     alphas = [0.00005, 0.00005, 0.0001, 0.00025, 0.0005, 0.009]
     results = []
@@ -72,7 +72,7 @@ def main():
                                     , random_state=13
                                     , early_stopping=False
                                     , momentum=0.99
-                                    , max_iter=3000
+                                    , max_iter=mi
                                     )
                 # print("NN config...\n", nn)
                 clf = make_pipeline(StandardScaler(), nn)
@@ -93,8 +93,7 @@ def main():
     df = pd.DataFrame(results, columns=cols)
     df.to_csv('nn_parameters.csv', sep=',', header=True)
     print(df.describe())
-    # df.plot.bar(x='alpha', y='score')
-    # plt.savefig('nn.png')
+
 
 if __name__ == '__main__':
 		main()
