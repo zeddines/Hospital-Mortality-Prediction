@@ -24,6 +24,7 @@ from sklearn.model_selection import train_test_split
 import numpy as np
 from sklearn.linear_model import LinearRegression
 import preprocessing as pp
+from statsmodels.stats.outliers_influence import variance_inflation_factor
 
 
 
@@ -476,6 +477,51 @@ def smote_sampling(X, y, ratio=1.0, random_state=None):
 
     return sampled_df
 
+# Author: Bertram
+# Get Vif for all features in X
+def get_vif(X):
+    vif = pd.DataFrame()
+    vif['VIF'] = [variance_inflation_factor(X.values,i)\
+                 for i in range(0, X.shape[1])]
+    vif['Feature'] = X.columns
+    return vif
+
+# Author: Bertram
+# Iterative method to eliminate feature that have the highest VIF
+# Ends when all VIF are below VIF_thresshold
+def get_vif_drop(X, cat_features = [], VIF_threshold = 10):
+    """
+    Parameters:
+        X  (pandas Dataframe): updated feature set
+        cat_features (list): list of categorical feature
+                             excluded from VIF filtering
+        VIF_threshold: VIF threshold, the method ends
+                       when all numerical feature have
+                       VIF values less than this threshold
+    Returns:
+        drop_feature_vif (list): list of feature that should
+                                   be dropped according to VIF
+                                   filtering
+    """
+    drop_feature_vif = []
+    X_test_updated_cont = X.drop(cat_features, axis = 1)
+    while (True):
+        vif = get_vif(X_test_updated_cont)
+        mv = max(vif['VIF'])
+        if (mv < VIF_threshold):
+            break
+        feature_tbr = vif.loc[vif['VIF'] == mv, "Feature"]
+        feature_tbr = feature_tbr.values[0]
+        drop_feature_vif.append(feature_tbr)
+        l = []
+        for i in X_test_updated_cont.columns.values:
+            if (i == feature_tbr):
+                l.append(False)
+            else:
+                l.append(True)
+        X_test_updated_cont = X_test_updated_cont.loc[:, l]
+    return drop_feature_vif
+
 
 
 # Author: Tanya
@@ -514,6 +560,20 @@ def model_ready_datasets(df_pp:pd.DataFrame):
                     ,'hematocrit binned','SP O2 binned'
                     ,'Magnesium_ion_updated','atrialfibrillation']
     X = df.drop(cols_to_drop, axis=1)
+    # Drop features based on VIF  
+    VIF_threshold = 7
+    feature_tbd = get_vif_drop(X, [ "hypertensive", "CHD with no MI",\
+                                   'Respiratory rate binned',\
+                                    'temperature binned', 'RBC_updated',\
+                                    'MCH_updated',\
+                                    'MCHC_updated','RDW_updated',\
+                                    'Lymphocyte_updated',\
+                                    'Blood_sodium_updated',\
+                                    'Blood_calcium_updated'], VIF_threshold)
+    # Additional feautures dropped, based on VIF_threshold = 7
+    # 'Neutrophils', 'PH', 'Anion gap', 'Bicarbonate', 'MCV', 
+    # 'howmany', 'Blood potassium', 'age', 'heart rate', 'Systolic blood pressure']
+    X = X.drop(feature_tbd, axis = 1)
     # Split data into development (90%) and test (10%) sets
     X_dev, X_test, y_dev, y_test = \
       train_test_split(X, y, test_size=0.1, random_state=42)

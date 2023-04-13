@@ -38,6 +38,8 @@ from sklearn.metrics import accuracy_score, f1_score, roc_curve, \
 from xgboost import XGBClassifier
 import preprocessing as pp
 import feature_enginnering as fe
+import metrics as mp
+
 
 
 
@@ -96,7 +98,7 @@ def configure_models():
     vc = VotingClassifier(estimators=[
            ('nn', nn), ('xgb', xgb), ('gbc', gbc), ('dt', dt)
            , ('knn', knn), ('svc', svc), ('rf', rf)
-    ], voting='hard')
+    ], voting='soft')
     lbs = ['nn', 'xgb', 'gbc', 'dt', 'knn', 'svc', 'rf', 'vc']
     clfs = [nn, xgb, gbc, dt, knn, svc, rf, vc]
     return lbs, clfs
@@ -121,18 +123,27 @@ def train_test_predict(X, y, X_tst, y_tst, lbls, models):
           # predict training and test
           train_pred = clf.predict(X)
           y_pred = clf.predict(X_tst)
+          # get prediction confidence
+          y_score = clf.predict_proba(X_tst)[:,1]
           # get MSE for training and test
           tr_mse = round(mean_squared_error(y, train_pred), 3)
           mse = round(mean_squared_error(y_tst, y_pred), 3)
           # find accuracy score
+          # NOTE accuracy is not a good metric for unbalance class
           tr_acc = round(accuracy_score(y, train_pred), 3)
           acc = round(accuracy_score(y_tst, y_pred), 3)
           lbl = lbls[i]
           print(f"{lbl} training\tMSE:{tr_mse}\tacc: {tr_acc}")
-          print(f"{lbl} testing\tMSE:{mse}\tacc:{acc}")
+          print(f"{lbl} testing\tMSE:{mse}\tacc: {acc}")
           print('Score', round(clf.score(X_tst, y_tst), 3))
-          print()
-       
+          # compute metrics and save figures in result folder
+          # get model name
+          model_name = clf.__class__.__name__
+          # get unprocessed and unnormalized data
+          # used for calculation of GWTG-HF risk score
+          df = pd.read_csv('data01.csv')
+          X_test = df.loc[X_tst.index]
+          mp.test_metrics(model_name, X_test, y_tst, y_pred, y_score)
     
 
 
